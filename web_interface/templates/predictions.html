@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}Sports Prediction System - Predictions{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mt-4 mb-4">Predictions</h1>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter mr-1"></i>
+                    Filter Predictions
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{{ url_for('predictions') }}">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                {{ form.sport.label(class="form-control-label") }}
+                                {{ form.sport(class="form-control") }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.start_date.label(class="form-control-label") }}
+                                {{ form.start_date(class="form-control", type="date") }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.end_date.label(class="form-control-label") }}
+                                {{ form.end_date(class="form-control", type="date") }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.confidence_level.label(class="form-control-label") }}
+                                {{ form.confidence_level(class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                {{ form.player_name.label(class="form-control-label") }}
+                                {{ form.player_name(class="form-control", placeholder="Enter player name") }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.team_name.label(class="form-control-label") }}
+                                {{ form.team_name(class="form-control", placeholder="Enter team name") }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.stat_type.label(class="form-control-label") }}
+                                {{ form.stat_type(class="form-control") }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                {{ form.sort_by.label(class="form-control-label") }}
+                                {{ form.sort_by(class="form-control") }}
+                                <div class="mt-2">
+                                    {{ form.sort_order.label(class="form-check-label mr-2") }}
+                                    {{ form.sort_order(class="form-control-sm") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form.submit(class="btn btn-primary") }}
+                                <a href="{{ url_for('predictions') }}" class="btn btn-secondary">Reset Filters</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visualizations Row -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Confidence Score Distribution
+                </div>
+                <div class="card-body">
+                    {% if visualizations.confidence_distribution %}
+                        <div id="confidenceDistributionChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for confidence distribution chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Over Probability Distribution
+                </div>
+                <div class="card-body">
+                    {% if visualizations.over_probability_distribution %}
+                        <div id="overProbabilityDistributionChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for over probability distribution chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Visualizations Row -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Predictions by Sport
+                </div>
+                <div class="card-body">
+                    {% if visualizations.predictions_by_sport %}
+                        <div id="predictionsBySportChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for predictions by sport chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Predictions by Stat Type
+                </div>
+                <div class="card-body">
+                    {% if visualizations.predictions_by_stat_type %}
+                        <div id="predictionsByStatTypeChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for predictions by stat type chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actual vs Predicted Chart (if available) -->
+    {% if visualizations.actual_vs_predicted %}
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-scatter mr-1"></i>
+                    Actual vs. Predicted Values
+                </div>
+                <div class="card-body">
+                    <div id="actualVsPredictedChart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Predictions Table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Predictions
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="predictionsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Team</th>
+                                    <th>Sport</th>
+                                    <th>Game Date</th>
+                                    <th>Matchup</th>
+                                    <th>Stat Type</th>
+                                    <th>Predicted</th>
+                                    <th>Range</th>
+                                    <th>Line</th>
+                                    <th>Over %</th>
+                                    <th>Confidence</th>
+                                    <th>Actual</th>
+                                    <th>Error</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prediction in predictions %}
+                                <tr>
+                                    <td>{{ prediction.player_name }}</td>
+                                    <td>{{ prediction.team_name }}</td>
+                                    <td>{{ prediction.sport }}</td>
+                                    <td>{{ prediction.game_date }}</td>
+                                    <td>{{ prediction.away_team }} @ {{ prediction.home_team }}</td>
+                                    <td>{{ prediction.stat_type }}</td>
+                                    <td>{{ "%.1f"|format(prediction.predicted_value) }}</td>
+                                    <td>
+                                        {% if prediction.prediction_range_low is not none and prediction.prediction_range_high is not none %}
+                                            {{ "%.1f"|format(prediction.prediction_range_low) }} - {{ "%.1f"|format(prediction.prediction_range_high) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ "%.1f"|format(prediction.line_value) }}</td>
+                                    <td>{{ "%.1f"|format(prediction.over_probability) }}%</td>
+                                    <td>{{ "%.1f"|format(prediction.confidence_score) }}%</td>
+                                    <td>
+                                        {% if prediction.actual_value is not none %}
+                                            {{ "%.1f"|format(prediction.actual_value) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if prediction.error is not none %}
+                                            {{ "%.1f"|format(prediction.error) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if prediction.over_under_correct is not none %}
+                                            {% if prediction.over_under_correct %}
+                                                <span class="badge badge-success">Correct</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Incorrect</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge badge-secondary">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="14" class="text-center">No predictions found matching the current filters.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#predictionsTable').DataTable({
+            pageLength: 25,
+            order: []
+        });
+
+        {% if visualizations.confidence_distribution %}
+            var confidenceDistributionData = JSON.parse('{{ visualizations.confidence_distribution|safe }}');
+            Plotly.newPlot('confidenceDistributionChart', confidenceDistributionData.data, confidenceDistributionData.layout);
+        {% endif %}
+
+        {% if visualizations.over_probability_distribution %}
+            var overProbabilityDistributionData = JSON.parse('{{ visualizations.over_probability_distribution|safe }}');
+            Plotly.newPlot('overProbabilityDistributionChart', overProbabilityDistributionData.data, overProbabilityDistributionData.layout);
+        {% endif %}
+
+        {% if visualizations.predictions_by_sport %}
+            var predictionsBySportData = JSON.parse('{{ visualizations.predictions_by_sport|safe }}');
+            Plotly.newPlot('predictionsBySportChart', predictionsBySportData.data, predictionsBySportData.layout);
+        {% endif %}
+
+        {% if visualizations.predictions_by_stat_type %}
+            var predictionsByStatTypeData = JSON.parse('{{ visualizations.predictions_by_stat_type|safe }}');
+            Plotly.newPlot('predictionsByStatTypeChart', predictionsByStatTypeData.data, predictionsByStatTypeData.layout);
+        {% endif %}
+
+        {% if visualizations.actual_vs_predicted %}
+            var actualVsPredictedData = JSON.parse('{{ visualizations.actual_vs_predicted|safe }}');
+            Plotly.newPlot('actualVsPredictedChart', actualVsPredictedData.data, actualVsPredictedData.layout);
+        {% endif %}
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Sports Prediction System - Feature Importance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mt-4 mb-4">Feature Importance Analysis</h1>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter mr-1"></i>
+                    Filter Feature Analysis
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{{ url_for('features') }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sport" class="form-control-label">Sport</label>
+                                <select name="sport" id="sport" class="form-control">
+                                    <option value="all" {% if sport == 'all' %}selected{% endif %}>All Sports</option>
+                                    <option value="nba" {% if sport == 'nba' %}selected{% endif %}>NBA</option>
+                                    <option value="nfl" {% if sport == 'nfl' %}selected{% endif %}>NFL</option>
+                                    <option value="mlb" {% if sport == 'mlb' %}selected{% endif %}>MLB</option>
+                                    <option value="nhl" {% if sport == 'nhl' %}selected{% endif %}>NHL</option>
+                                    <option value="soccer" {% if sport == 'soccer' %}selected{% endif %}>Soccer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="model_version" class="form-control-label">Model Version</label>
+                                <select name="model_version" id="model_version" class="form-control">
+                                    <option value="">Latest Version</option>
+                                    <!-- Add model versions dynamically if available -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <a href="{{ url_for('features') }}" class="btn btn-secondary">Reset Filters</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Importance Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Top 20 Feature Importance
+                </div>
+                <div class="card-body">
+                    {% if visualizations.feature_importance %}
+                        <div id="featureImportanceChart" style="height: 600px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for feature importance chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Interactions Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Top 10 Feature Interactions
+                </div>
+                <div class="card-body">
+                    {% if visualizations.feature_interactions %}
+                        <div id="featureInteractionsChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for feature interactions chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-heatmap mr-1"></i>
+                    Feature Correlation Heatmap
+                </div>
+                <div class="card-body">
+                    {% if visualizations.correlation_heatmap %}
+                        <div id="correlationHeatmapChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for correlation heatmap.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Drift Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Top 10 Feature Drift
+                </div>
+                <div class="card-body">
+                    {% if visualizations.feature_drift %}
+                        <div id="featureDriftChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for feature drift chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Importance Table -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Feature Importance
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="featureImportanceTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Feature</th>
+                                    <th>Importance</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i, feature in enumerate(feature_importance) %}
+                                <tr>
+                                    <td>{{ i + 1 }}</td>
+                                    <td>{{ feature.feature }}</td>
+                                    <td>{{ "%.4f"|format(feature.importance) }}</td>
+                                    <td>{{ feature.description|default('') }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No feature importance data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Interactions Table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Feature Interactions
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="featureInteractionsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Feature 1</th>
+                                    <th>Feature 2</th>
+                                    <th>Interaction Strength</th>
+                                    <th>Correlation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i, interaction in enumerate(feature_interactions) %}
+                                <tr>
+                                    <td>{{ i + 1 }}</td>
+                                    <td>{{ interaction.feature_1 }}</td>
+                                    <td>{{ interaction.feature_2 }}</td>
+                                    <td>{{ "%.4f"|format(interaction.interaction_strength) }}</td>
+                                    <td>{{ "%.4f"|format(interaction.correlation|default(0)) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No feature interaction data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#featureImportanceTable').DataTable({
+            pageLength: 20,
+            order: [[2, 'desc']]
+        });
+
+        $('#featureInteractionsTable').DataTable({
+            pageLength: 10,
+            order: [[3, 'desc']]
+        });
+
+        {% if visualizations.feature_importance %}
+            var featureImportanceData = JSON.parse('{{ visualizations.feature_importance|safe }}');
+            Plotly.newPlot('featureImportanceChart', featureImportanceData.data, featureImportanceData.layout);
+        {% endif %}
+
+        {% if visualizations.feature_interactions %}
+            var featureInteractionsData = JSON.parse('{{ visualizations.feature_interactions|safe }}');
+            Plotly.newPlot('featureInteractionsChart', featureInteractionsData.data, featureInteractionsData.layout);
+        {% endif %}
+
+        {% if visualizations.correlation_heatmap %}
+            var correlationHeatmapData = JSON.parse('{{ visualizations.correlation_heatmap|safe }}');
+            Plotly.newPlot('correlationHeatmapChart', correlationHeatmapData.data, correlationHeatmapData.layout);
+        {% endif %}
+
+        {% if visualizations.feature_drift %}
+            var featureDriftData = JSON.parse('{{ visualizations.feature_drift|safe }}');
+            Plotly.newPlot('featureDriftChart', featureDriftData.data, featureDriftData.layout);
+        {% endif %}
+    });
+</script>
+{% endblock %}

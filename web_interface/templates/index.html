@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Sports Prediction System - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mt-4 mb-4">Sports Prediction Dashboard</h1>
+        </div>
+    </div>
+
+    <!-- Summary Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Predictions</h5>
+                    <h2 class="display-4">{{ stats.total_predictions|default('0') }}</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{{ url_for('predictions') }}">View Details</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Accuracy</h5>
+                    <h2 class="display-4">{{ "%.1f"|format(stats.recent_accuracy|default(0)) }}%</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{{ url_for('performance') }}">View Details</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Players</h5>
+                    <h2 class="display-4">{{ stats.total_players|default('0') }}</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{{ url_for('predictions') }}">View Details</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Avg Confidence</h5>
+                    <h2 class="display-4">{{ "%.1f"|format(stats.avg_confidence|default(0)) }}%</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{{ url_for('analysis') }}">View Details</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visualizations Row -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie mr-1"></i>
+                    Predictions by Sport
+                </div>
+                <div class="card-body">
+                    {% if visualizations.sport_distribution %}
+                        <div id="sportDistributionChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for sport distribution chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Accuracy by Confidence Level
+                </div>
+                <div class="card-body">
+                    {% if visualizations.confidence_accuracy %}
+                        <div id="confidenceAccuracyChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for confidence accuracy chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Performance Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line mr-1"></i>
+                    Recent Prediction Accuracy
+                </div>
+                <div class="card-body">
+                    {% if visualizations.recent_performance %}
+                        <div id="recentPerformanceChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for recent performance chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Predictions Table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Recent Predictions
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="recentPredictionsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Team</th>
+                                    <th>Sport</th>
+                                    <th>Game Date</th>
+                                    <th>Stat Type</th>
+                                    <th>Predicted</th>
+                                    <th>Line</th>
+                                    <th>Over %</th>
+                                    <th>Confidence</th>
+                                    <th>Actual</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prediction in recent_predictions %}
+                                <tr>
+                                    <td>{{ prediction.player_name }}</td>
+                                    <td>{{ prediction.team_name }}</td>
+                                    <td>{{ prediction.sport }}</td>
+                                    <td>{{ prediction.game_date }}</td>
+                                    <td>{{ prediction.stat_type }}</td>
+                                    <td>{{ "%.1f"|format(prediction.predicted_value) }}</td>
+                                    <td>{{ "%.1f"|format(prediction.line_value) }}</td>
+                                    <td>{{ "%.1f"|format(prediction.over_probability) }}%</td>
+                                    <td>{{ "%.1f"|format(prediction.confidence_score) }}%</td>
+                                    <td>
+                                        {% if prediction.actual_value is not none %}
+                                            {{ "%.1f"|format(prediction.actual_value) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if prediction.over_under_correct is not none %}
+                                            {% if prediction.over_under_correct %}
+                                                <span class="badge badge-success">Correct</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Incorrect</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge badge-secondary">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="11" class="text-center">No recent predictions available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('predictions') }}" class="btn btn-primary">View All Predictions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#recentPredictionsTable').DataTable({
+            paging: false,
+            searching: false,
+            info: false
+        });
+
+        {% if visualizations.sport_distribution %}
+            var sportDistributionData = JSON.parse('{{ visualizations.sport_distribution|safe }}');
+            Plotly.newPlot('sportDistributionChart', sportDistributionData.data, sportDistributionData.layout);
+        {% endif %}
+
+        {% if visualizations.confidence_accuracy %}
+            var confidenceAccuracyData = JSON.parse('{{ visualizations.confidence_accuracy|safe }}');
+            Plotly.newPlot('confidenceAccuracyChart', confidenceAccuracyData.data, confidenceAccuracyData.layout);
+        {% endif %}
+
+        {% if visualizations.recent_performance %}
+            var recentPerformanceData = JSON.parse('{{ visualizations.recent_performance|safe }}');
+            Plotly.newPlot('recentPerformanceChart', recentPerformanceData.data, recentPerformanceData.layout);
+        {% endif %}
+    });
+</script>
+{% endblock %}

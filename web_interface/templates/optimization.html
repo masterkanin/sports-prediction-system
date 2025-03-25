@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block title %}Sports Prediction System - Strategy Optimization{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mt-4 mb-4">Prediction Strategy Optimization</h1>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter mr-1"></i>
+                    Filter Optimization Results
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{{ url_for('optimization') }}">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="sport" class="form-control-label">Sport</label>
+                                <select name="sport" id="sport" class="form-control">
+                                    <option value="all" {% if sport == 'all' %}selected{% endif %}>All Sports</option>
+                                    <option value="nba" {% if sport == 'nba' %}selected{% endif %}>NBA</option>
+                                    <option value="nfl" {% if sport == 'nfl' %}selected{% endif %}>NFL</option>
+                                    <option value="mlb" {% if sport == 'mlb' %}selected{% endif %}>MLB</option>
+                                    <option value="nhl" {% if sport == 'nhl' %}selected{% endif %}>NHL</option>
+                                    <option value="soccer" {% if sport == 'soccer' %}selected{% endif %}>Soccer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="start_date" class="form-control-label">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="end_date" class="form-control-label">End Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="model_version" class="form-control-label">Model Version</label>
+                                <select name="model_version" id="model_version" class="form-control">
+                                    <option value="">Latest Version</option>
+                                    <!-- Add model versions dynamically if available -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <a href="{{ url_for('optimization') }}" class="btn btn-secondary">Reset Filters</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optimization Metrics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Reward</h5>
+                    <h2 class="display-4">{{ "%.1f"|format(optimization_results.total_reward|default(0)) }}</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Cumulative Reward from Strategy</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Average Reward</h5>
+                    <h2 class="display-4">{{ "%.2f"|format(optimization_results.average_reward|default(0)) }}</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Average Reward per Prediction</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Accuracy</h5>
+                    <h2 class="display-4">{{ "%.1f"|format(optimization_results.accuracy|default(0) * 100) }}%</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Optimized Strategy Accuracy</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Predictions</h5>
+                    <h2 class="display-4">{{ optimization_results.total_predictions|default(0) }}</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Number of Predictions Analyzed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Episode Rewards Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line mr-1"></i>
+                    Episode Rewards
+                </div>
+                <div class="card-body">
+                    {% if visualizations.episode_rewards %}
+                        <div id="episodeRewardsChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for episode rewards chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Distribution Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line mr-1"></i>
+                    Action Distribution by Episode
+                </div>
+                <div class="card-body">
+                    {% if visualizations.action_distribution %}
+                        <div id="actionDistributionChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for action distribution chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Final Action Distribution
+                </div>
+                <div class="card-body">
+                    {% if visualizations.final_action_distribution %}
+                        <div id="finalActionDistributionChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for final action distribution chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optimization Metrics Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Optimization Performance Metrics
+                </div>
+                <div class="card-body">
+                    {% if visualizations.optimization_metrics %}
+                        <div id="optimizationMetricsChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for optimization metrics chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optimized Predictions Table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Optimized Predictions
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="optimizedPredictionsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Team</th>
+                                    <th>Sport</th>
+                                    <th>Game Date</th>
+                                    <th>Stat Type</th>
+                                    <th>Line Value</th>
+                                    <th>Predicted Value</th>
+                                    <th>Over Probability</th>
+                                    <th>Confidence</th>
+                                    <th>Recommended Action</th>
+                                    <th>Actual Value</th>
+                                    <th>Result</th>
+                                    <th>Reward</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prediction in optimization_results.optimized_predictions|default([]) %}
+                                <tr>
+                                    <td>{{ prediction.player_name }}</td>
+                                    <td>{{ prediction.team_name }}</td>
+                                    <td>{{ prediction.sport }}</td>
+                                    <td>{{ prediction.game_date }}</td>
+                                    <td>{{ prediction.stat_type }}</td>
+                                    <td>{{ "%.1f"|format(prediction.line_value) }}</td>
+                                    <td>{{ "%.1f"|format(prediction.predicted_value) }}</td>
+                                    <td>{{ "%.1f"|format(prediction.over_probability * 100) }}%</td>
+                                    <td>{{ "%.1f"|format(prediction.confidence_score) }}%</td>
+                                    <td>
+                                        {% if prediction.action == 0 %}
+                                            <span class="badge badge-secondary">Skip</span>
+                                        {% elif prediction.action == 1 %}
+                                            <span class="badge badge-success">Over</span>
+                                        {% elif prediction.action == 2 %}
+                                            <span class="badge badge-danger">Under</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if prediction.actual_value is not none %}
+                                            {{ "%.1f"|format(prediction.actual_value) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if prediction.result is not none %}
+                                            {% if prediction.result %}
+                                                <span class="badge badge-success">Correct</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Incorrect</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge badge-secondary">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ "%.2f"|format(prediction.reward|default(0)) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="13" class="text-center">No optimized predictions available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#optimizedPredictionsTable').DataTable({
+            pageLength: 10,
+            order: [[12, 'desc']]
+        });
+
+        {% if visualizations.episode_rewards %}
+            var episodeRewardsData = JSON.parse('{{ visualizations.episode_rewards|safe }}');
+            Plotly.newPlot('episodeRewardsChart', episodeRewardsData.data, episodeRewardsData.layout);
+        {% endif %}
+
+        {% if visualizations.action_distribution %}
+            var actionDistributionData = JSON.parse('{{ visualizations.action_distribution|safe }}');
+            Plotly.newPlot('actionDistributionChart', actionDistributionData.data, actionDistributionData.layout);
+        {% endif %}
+
+        {% if visualizations.final_action_distribution %}
+            var finalActionDistributionData = JSON.parse('{{ visualizations.final_action_distribution|safe }}');
+            Plotly.newPlot('finalActionDistributionChart', finalActionDistributionData.data, finalActionDistributionData.layout);
+        {% endif %}
+
+        {% if visualizations.optimization_metrics %}
+            var optimizationMetricsData = JSON.parse('{{ visualizations.optimization_metrics|safe }}');
+            Plotly.newPlot('optimizationMetricsChart', optimizationMetricsData.data, optimizationMetricsData.layout);
+        {% endif %}
+    });
+</script>
+{% endblock %}

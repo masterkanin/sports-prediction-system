@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}Sports Prediction System - Anomaly Detection{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mt-4 mb-4">Anomaly Detection</h1>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter mr-1"></i>
+                    Filter Anomalies
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{{ url_for('anomalies') }}">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="sport" class="form-control-label">Sport</label>
+                                <select name="sport" id="sport" class="form-control">
+                                    <option value="all" {% if sport == 'all' %}selected{% endif %}>All Sports</option>
+                                    <option value="nba" {% if sport == 'nba' %}selected{% endif %}>NBA</option>
+                                    <option value="nfl" {% if sport == 'nfl' %}selected{% endif %}>NFL</option>
+                                    <option value="mlb" {% if sport == 'mlb' %}selected{% endif %}>MLB</option>
+                                    <option value="nhl" {% if sport == 'nhl' %}selected{% endif %}>NHL</option>
+                                    <option value="soccer" {% if sport == 'soccer' %}selected{% endif %}>Soccer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="start_date" class="form-control-label">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="end_date" class="form-control-label">End Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <a href="{{ url_for('anomalies') }}" class="btn btn-secondary">Reset Filters</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Anomalies Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Top 20 Performance Anomalies
+                </div>
+                <div class="card-body">
+                    {% if visualizations.performance_anomalies %}
+                        <div id="performanceAnomaliesChart" style="height: 600px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for performance anomalies chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anomalies Distribution Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Anomalies by Position
+                </div>
+                <div class="card-body">
+                    {% if visualizations.anomalies_by_position %}
+                        <div id="anomaliesByPositionChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for anomalies by position chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Anomalies by Stat Type
+                </div>
+                <div class="card-body">
+                    {% if visualizations.anomalies_by_stat_type %}
+                        <div id="anomaliesByStatTypeChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for anomalies by stat type chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prediction Anomalies Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Top 20 Prediction Anomalies
+                </div>
+                <div class="card-body">
+                    {% if visualizations.prediction_anomalies %}
+                        <div id="predictionAnomaliesChart" style="height: 600px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for prediction anomalies chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confidence vs Error Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-scatter mr-1"></i>
+                    Confidence vs. Error Z-Score
+                </div>
+                <div class="card-body">
+                    {% if visualizations.confidence_vs_error %}
+                        <div id="confidenceVsErrorChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for confidence vs. error chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-scatter mr-1"></i>
+                    Actual vs. Predicted Values (Anomalies)
+                </div>
+                <div class="card-body">
+                    {% if visualizations.anomalies_actual_vs_predicted %}
+                        <div id="anomaliesActualVsPredictedChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for actual vs. predicted chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Anomalies Table -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Performance Anomalies
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="performanceAnomaliesTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Team</th>
+                                    <th>Position</th>
+                                    <th>Sport</th>
+                                    <th>Game Date</th>
+                                    <th>Stat Type</th>
+                                    <th>Expected Value</th>
+                                    <th>Actual Value</th>
+                                    <th>Z-Score</th>
+                                    <th>Anomaly Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for anomaly in performance_anomalies %}
+                                <tr>
+                                    <td>{{ anomaly.player_name }}</td>
+                                    <td>{{ anomaly.team_name }}</td>
+                                    <td>{{ anomaly.position }}</td>
+                                    <td>{{ anomaly.sport }}</td>
+                                    <td>{{ anomaly.game_date }}</td>
+                                    <td>{{ anomaly.stat_type }}</td>
+                                    <td>{{ "%.1f"|format(anomaly.expected_value) }}</td>
+                                    <td>{{ "%.1f"|format(anomaly.actual_value) }}</td>
+                                    <td>{{ "%.2f"|format(anomaly.z_score) }}</td>
+                                    <td>
+                                        {% if anomaly.z_score > 0 %}
+                                            <span class="badge badge-success">Overperformance</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Underperformance</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="10" class="text-center">No performance anomalies found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prediction Anomalies Table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Prediction Anomalies
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="predictionAnomaliesTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Team</th>
+                                    <th>Sport</th>
+                                    <th>Game Date</th>
+                                    <th>Stat Type</th>
+                                    <th>Predicted Value</th>
+                                    <th>Actual Value</th>
+                                    <th>Error</th>
+                                    <th>Error Z-Score</th>
+                                    <th>Confidence Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for anomaly in prediction_anomalies %}
+                                <tr>
+                                    <td>{{ anomaly.player_name }}</td>
+                                    <td>{{ anomaly.team_name }}</td>
+                                    <td>{{ anomaly.sport }}</td>
+                                    <td>{{ anomaly.game_date }}</td>
+                                    <td>{{ anomaly.stat_type }}</td>
+                                    <td>{{ "%.1f"|format(anomaly.predicted_value) }}</td>
+                                    <td>{{ "%.1f"|format(anomaly.actual_value) }}</td>
+                                    <td>{{ "%.1f"|format(anomaly.error) }}</td>
+                                    <td>{{ "%.2f"|format(anomaly.error_z_score) }}</td>
+                                    <td>{{ "%.1f"|format(anomaly.confidence_score) }}%</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="10" class="text-center">No prediction anomalies found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#performanceAnomaliesTable').DataTable({
+            order: [[8, 'desc']],
+            pageLength: 10
+        });
+
+        $('#predictionAnomaliesTable').DataTable({
+            order: [[8, 'desc']],
+            pageLength: 10
+        });
+
+        {% if visualizations.performance_anomalies %}
+            var performanceAnomaliesData = JSON.parse('{{ visualizations.performance_anomalies|safe }}');
+            Plotly.newPlot('performanceAnomaliesChart', performanceAnomaliesData.data, performanceAnomaliesData.layout);
+        {% endif %}
+
+        {% if visualizations.anomalies_by_position %}
+            var anomaliesByPositionData = JSON.parse('{{ visualizations.anomalies_by_position|safe }}');
+            Plotly.newPlot('anomaliesByPositionChart', anomaliesByPositionData.data, anomaliesByPositionData.layout);
+        {% endif %}
+
+        {% if visualizations.anomalies_by_stat_type %}
+            var anomaliesByStatTypeData = JSON.parse('{{ visualizations.anomalies_by_stat_type|safe }}');
+            Plotly.newPlot('anomaliesByStatTypeChart', anomaliesByStatTypeData.data, anomaliesByStatTypeData.layout);
+        {% endif %}
+
+        {% if visualizations.prediction_anomalies %}
+            var predictionAnomaliesData = JSON.parse('{{ visualizations.prediction_anomalies|safe }}');
+            Plotly.newPlot('predictionAnomaliesChart', predictionAnomaliesData.data, predictionAnomaliesData.layout);
+        {% endif %}
+
+        {% if visualizations.confidence_vs_error %}
+            var confidenceVsErrorData = JSON.parse('{{ visualizations.confidence_vs_error|safe }}');
+            Plotly.newPlot('confidenceVsErrorChart', confidenceVsErrorData.data, confidenceVsErrorData.layout);
+        {% endif %}
+
+        {% if visualizations.anomalies_actual_vs_predicted %}
+            var anomaliesActualVsPredictedData = JSON.parse('{{ visualizations.anomalies_actual_vs_predicted|safe }}');
+            Plotly.newPlot('anomaliesActualVsPredictedChart', anomaliesActualVsPredictedData.data, anomaliesActualVsPredictedData.layout);
+        {% endif %}
+    });
+</script>
+{% endblock %}

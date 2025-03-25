@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}Sports Prediction System - Error Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mt-4 mb-4">Error Analysis</h1>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter mr-1"></i>
+                    Filter Error Analysis
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{{ url_for('analysis') }}">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="sport" class="form-control-label">Sport</label>
+                                <select name="sport" id="sport" class="form-control">
+                                    <option value="all" {% if sport == 'all' %}selected{% endif %}>All Sports</option>
+                                    <option value="nba" {% if sport == 'nba' %}selected{% endif %}>NBA</option>
+                                    <option value="nfl" {% if sport == 'nfl' %}selected{% endif %}>NFL</option>
+                                    <option value="mlb" {% if sport == 'mlb' %}selected{% endif %}>MLB</option>
+                                    <option value="nhl" {% if sport == 'nhl' %}selected{% endif %}>NHL</option>
+                                    <option value="soccer" {% if sport == 'soccer' %}selected{% endif %}>Soccer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="start_date" class="form-control-label">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="end_date" class="form-control-label">End Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <a href="{{ url_for('analysis') }}" class="btn btn-secondary">Reset Filters</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Errors Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Top 10 Players by MAE
+                </div>
+                <div class="card-body">
+                    {% if visualizations.top_players_mae %}
+                        <div id="topPlayersMaeChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for top players by MAE chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Top 10 Players by Bias
+                </div>
+                <div class="card-body">
+                    {% if visualizations.top_players_bias %}
+                        <div id="topPlayersBiasChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for top players by bias chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Errors Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Teams by MAE
+                </div>
+                <div class="card-body">
+                    {% if visualizations.teams_mae %}
+                        <div id="teamsMaeChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for teams by MAE chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Teams by Bias
+                </div>
+                <div class="card-body">
+                    {% if visualizations.teams_bias %}
+                        <div id="teamsBiasChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for teams by bias chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Type Errors Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Stat Types by MAE
+                </div>
+                <div class="card-body">
+                    {% if visualizations.stat_types_mae %}
+                        <div id="statTypesMaeChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for stat types by MAE chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Stat Types by Bias
+                </div>
+                <div class="card-body">
+                    {% if visualizations.stat_types_bias %}
+                        <div id="statTypesBiasChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for stat types by bias chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Systematic Biases Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Top Systematic Biases
+                </div>
+                <div class="card-body">
+                    {% if visualizations.systematic_biases %}
+                        <div id="systematicBiasesChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for systematic biases chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Errors Table -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Player Error Analysis
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="playerErrorsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Team</th>
+                                    <th>Position</th>
+                                    <th>MAE</th>
+                                    <th>RMSE</th>
+                                    <th>Bias</th>
+                                    <th>Over/Under Accuracy</th>
+                                    <th>Predictions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for error in player_errors %}
+                                <tr>
+                                    <td>{{ error.player_name }}</td>
+                                    <td>{{ error.team_name }}</td>
+                                    <td>{{ error.position }}</td>
+                                    <td>{{ "%.2f"|format(error.mae) }}</td>
+                                    <td>{{ "%.2f"|format(error.rmse) }}</td>
+                                    <td>{{ "%.2f"|format(error.bias) }}</td>
+                                    <td>{{ "%.1f"|format(error.over_under_accuracy * 100) }}%</td>
+                                    <td>{{ error.count }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No player error data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Systematic Biases Table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Systematic Biases
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="systematicBiasesTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Value</th>
+                                    <th>Mean Error</th>
+                                    <th>MAE</th>
+                                    <th>Over/Under Accuracy</th>
+                                    <th>Predictions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bias in systematic_biases %}
+                                <tr>
+                                    <td>{{ bias.category }}</td>
+                                    <td>{{ bias.value }}</td>
+                                    <td>{{ "%.2f"|format(bias.mean_error) }}</td>
+                                    <td>{{ "%.2f"|format(bias.mae) }}</td>
+                                    <td>{{ "%.1f"|format(bias.over_under_accuracy * 100) }}%</td>
+                                    <td>{{ bias.count }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No systematic bias data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#playerErrorsTable').DataTable({
+            order: [[3, 'desc']],
+            pageLength: 10
+        });
+
+        $('#systematicBiasesTable').DataTable({
+            order: [[2, 'desc']],
+            pageLength: 10
+        });
+
+        {% if visualizations.top_players_mae %}
+            var topPlayersMaeData = JSON.parse('{{ visualizations.top_players_mae|safe }}');
+            Plotly.newPlot('topPlayersMaeChart', topPlayersMaeData.data, topPlayersMaeData.layout);
+        {% endif %}
+
+        {% if visualizations.top_players_bias %}
+            var topPlayersBiasData = JSON.parse('{{ visualizations.top_players_bias|safe }}');
+            Plotly.newPlot('topPlayersBiasChart', topPlayersBiasData.data, topPlayersBiasData.layout);
+        {% endif %}
+
+        {% if visualizations.teams_mae %}
+            var teamsMaeData = JSON.parse('{{ visualizations.teams_mae|safe }}');
+            Plotly.newPlot('teamsMaeChart', teamsMaeData.data, teamsMaeData.layout);
+        {% endif %}
+
+        {% if visualizations.teams_bias %}
+            var teamsBiasData = JSON.parse('{{ visualizations.teams_bias|safe }}');
+            Plotly.newPlot('teamsBiasChart', teamsBiasData.data, teamsBiasData.layout);
+        {% endif %}
+
+        {% if visualizations.stat_types_mae %}
+            var statTypesMaeData = JSON.parse('{{ visualizations.stat_types_mae|safe }}');
+            Plotly.newPlot('statTypesMaeChart', statTypesMaeData.data, statTypesMaeData.layout);
+        {% endif %}
+
+        {% if visualizations.stat_types_bias %}
+            var statTypesBiasData = JSON.parse('{{ visualizations.stat_types_bias|safe }}');
+            Plotly.newPlot('statTypesBiasChart', statTypesBiasData.data, statTypesBiasData.layout);
+        {% endif %}
+
+        {% if visualizations.systematic_biases %}
+            var systematicBiasesData = JSON.parse('{{ visualizations.systematic_biases|safe }}');
+            Plotly.newPlot('systematicBiasesChart', systematicBiasesData.data, systematicBiasesData.layout);
+        {% endif %}
+    });
+</script>
+{% endblock %}

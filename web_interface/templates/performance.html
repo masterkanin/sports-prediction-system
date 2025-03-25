@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+{% block title %}Sports Prediction System - Performance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mt-4 mb-4">Performance Tracking</h1>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter mr-1"></i>
+                    Filter Performance Data
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{{ url_for('performance') }}">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="sport" class="form-control-label">Sport</label>
+                                <select name="sport" id="sport" class="form-control">
+                                    <option value="all" {% if sport == 'all' %}selected{% endif %}>All Sports</option>
+                                    <option value="nba" {% if sport == 'nba' %}selected{% endif %}>NBA</option>
+                                    <option value="nfl" {% if sport == 'nfl' %}selected{% endif %}>NFL</option>
+                                    <option value="mlb" {% if sport == 'mlb' %}selected{% endif %}>MLB</option>
+                                    <option value="nhl" {% if sport == 'nhl' %}selected{% endif %}>NHL</option>
+                                    <option value="soccer" {% if sport == 'soccer' %}selected{% endif %}>Soccer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="start_date" class="form-control-label">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="end_date" class="form-control-label">End Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <a href="{{ url_for('performance') }}" class="btn btn-secondary">Reset Filters</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Overall Accuracy</h5>
+                    <h2 class="display-4">{{ "%.1f"|format(performance_metrics.overall_metrics.over_under_accuracy * 100) }}%</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Over/Under Prediction Accuracy</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Mean Absolute Error</h5>
+                    <h2 class="display-4">{{ "%.2f"|format(performance_metrics.overall_metrics.mae) }}</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Average Absolute Prediction Error</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">RMSE</h5>
+                    <h2 class="display-4">{{ "%.2f"|format(performance_metrics.overall_metrics.rmse) }}</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Root Mean Square Error</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Total Predictions</h5>
+                    <h2 class="display-4">{{ performance_metrics.overall_metrics.count }}</h2>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Number of Predictions Analyzed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance by Sport Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Performance by Sport
+                </div>
+                <div class="card-body">
+                    {% if visualizations.accuracy_by_sport %}
+                        <div id="accuracyBySportChart" style="height: 400px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for accuracy by sport chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance by Confidence Level Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Accuracy by Confidence Level
+                </div>
+                <div class="card-body">
+                    {% if visualizations.accuracy_by_confidence %}
+                        <div id="accuracyByConfidenceChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for accuracy by confidence level chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    MAE by Confidence Level
+                </div>
+                <div class="card-body">
+                    {% if visualizations.mae_by_confidence %}
+                        <div id="maeByConfidenceChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for MAE by confidence level chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Over Time Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line mr-1"></i>
+                    Accuracy Over Time
+                </div>
+                <div class="card-body">
+                    {% if visualizations.accuracy_over_time %}
+                        <div id="accuracyOverTimeChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for accuracy over time chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line mr-1"></i>
+                    MAE Over Time
+                </div>
+                <div class="card-body">
+                    {% if visualizations.mae_over_time %}
+                        <div id="maeOverTimeChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for MAE over time chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prediction Count Over Time Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Prediction Count Over Time
+                </div>
+                <div class="card-body">
+                    {% if visualizations.count_over_time %}
+                        <div id="countOverTimeChart" style="height: 350px;"></div>
+                    {% else %}
+                        <div class="alert alert-info">No data available for prediction count over time chart.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance History Table -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table mr-1"></i>
+                    Performance History
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="performanceHistoryTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Accuracy (%)</th>
+                                    <th>MAE</th>
+                                    <th>RMSE</th>
+                                    <th>Predictions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for date, metrics in performance_history.items() %}
+                                <tr>
+                                    <td>{{ date }}</td>
+                                    <td>{{ "%.1f"|format(metrics.over_under_accuracy * 100) }}</td>
+                                    <td>{{ "%.2f"|format(metrics.mae) }}</td>
+                                    <td>{{ "%.2f"|format(metrics.rmse) }}</td>
+                                    <td>{{ metrics.count }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No performance history available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('#performanceHistoryTable').DataTable({
+            order: [[0, 'desc']],
+            pageLength: 10
+        });
+
+        {% if visualizations.accuracy_by_sport %}
+            var accuracyBySportData = JSON.parse('{{ visualizations.accuracy_by_sport|safe }}');
+            Plotly.newPlot('accuracyBySportChart', accuracyBySportData.data, accuracyBySportData.layout);
+        {% endif %}
+
+        {% if visualizations.accuracy_by_confidence %}
+            var accuracyByConfidenceData = JSON.parse('{{ visualizations.accuracy_by_confidence|safe }}');
+            Plotly.newPlot('accuracyByConfidenceChart', accuracyByConfidenceData.data, accuracyByConfidenceData.layout);
+        {% endif %}
+
+        {% if visualizations.mae_by_confidence %}
+            var maeByConfidenceData = JSON.parse('{{ visualizations.mae_by_confidence|safe }}');
+            Plotly.newPlot('maeByConfidenceChart', maeByConfidenceData.data, maeByConfidenceData.layout);
+        {% endif %}
+
+        {% if visualizations.accuracy_over_time %}
+            var accuracyOverTimeData = JSON.parse('{{ visualizations.accuracy_over_time|safe }}');
+            Plotly.newPlot('accuracyOverTimeChart', accuracyOverTimeData.data, accuracyOverTimeData.layout);
+        {% endif %}
+
+        {% if visualizations.mae_over_time %}
+            var maeOverTimeData = JSON.parse('{{ visualizations.mae_over_time|safe }}');
+            Plotly.newPlot('maeOverTimeChart', maeOverTimeData.data, maeOverTimeData.layout);
+        {% endif %}
+
+        {% if visualizations.count_over_time %}
+            var countOverTimeData = JSON.parse('{{ visualizations.count_over_time|safe }}');
+            Plotly.newPlot('countOverTimeChart', countOverTimeData.data, countOverTimeData.layout);
+        {% endif %}
+    });
+</script>
+{% endblock %}
